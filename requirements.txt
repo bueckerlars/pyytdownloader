@@ -2,3 +2,4 @@ pytubemp3
 tkinter
 customtkinter
 packaging
+moviepy
