@@ -15,7 +15,7 @@ print("Destination (DEFAULT): " + destinationPath)
 
 def downloadMP3(url: string, dest: string) -> string:
         try:
-            ytObject = YouTube(url)
+            ytObject = YouTube(url, on_progress_callback=on_progress)
             audio = ytObject.streams.get_highest_resolution()
             audio.download(output_path=dest)
 
@@ -23,6 +23,13 @@ def downloadMP3(url: string, dest: string) -> string:
             return audio.default_filename
         except:
             print("Download failed | url: " + url)      
+
+def on_progress(stream, chunk, bytes_remaining):
+    total_size = stream.filesize
+    bytes_downloaded = total_size - bytes_remaining
+    percentage_of_completion = bytes_downloaded / total_size
+    stepProgressBar.set(float(percentage_of_completion))
+    stepProgressBar.update()
 
 def convertToMP3(mp4, mp3):
     FILETOCONVERT = AudioFileClip(mp4)
@@ -32,12 +39,15 @@ def convertToMP3(mp4, mp3):
 def create_link_list():
     text = link.get("0.0", "end")
     linkList = text.splitlines()
+    video_count = len(linkList)
+    current_video = 0
     print(linkList)
 
     fileNameList = []
 
     for url in linkList:
         fileNameList.append(downloadMP3(url, destinationPath))
+        
 
     print(fileNameList)
 
@@ -52,6 +62,9 @@ def create_link_list():
 
         convertToMP3(source, dest)
         os.remove(source)
+        current_video += 1
+        totalProgressBar.set(float(current_video / video_count))
+        totalProgressBar.update()
 
 
 def open_file_dialog():
@@ -93,5 +106,9 @@ if __name__ == '__main__':
     stepProgressBar = customtkinter.CTkProgressBar(app, width=400)
     stepProgressBar.set(0)
     stepProgressBar.pack(padx=10, pady=10)
+
+    totalProgressBar = customtkinter.CTkProgressBar(app, width=400)
+    totalProgressBar.set(0)
+    totalProgressBar.pack(padx=10, pady=10)
     
     app.mainloop()
